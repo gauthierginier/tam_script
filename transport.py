@@ -2,17 +2,22 @@ import sqlite3
 import argparse
 import sys
 import urllib.request
+import os
+import logging
+
+sources = os.listdir("./")
 
 parser = argparse.ArgumentParser("Script to interact with data from the TAM API")
-parser.add_argument("-n","--now", help="path to sqlite database", action="store_true", required=False)
+parser.add_argument("-n","--now", help="dowload the TAM csv and refresh the database",action="store_true", required=False)
 parser.add_argument("-d","--db_path",nargs=1,type=str, help="path to sqlite database", required=True)
 parser.add_argument("-c","--csv_path",nargs=1,type=str, help="path to csv file to load into the db", required=True)
+parser.add_argument("-o","--output_path",nargs=1,type=str, help="path to output file you want to edit", required=True)
 subparser = parser.add_subparsers(dest='command')
 timefunc = subparser.add_parser('time')
-nextfunc = subparser.add_parser('next')
 timefunc.add_argument('-l','--line',nargs=1, type=str)
 timefunc.add_argument('-d','--dest',nargs=1, type=str)
 timefunc.add_argument('-s','--station',nargs=1, type=str)
+nextfunc = subparser.add_parser('next')
 nextfunc.add_argument('-s','--station',nargs=1, type=str)
 args = parser.parse_args()
 
@@ -30,6 +35,7 @@ def download_csv():
     file = open(args.csv_path[0], 'w')
     file.write(data_str)
     file.close()
+
 
 def clear_rows(cursor):
     cursor.execute("""DELETE FROM infoarret""")
@@ -78,7 +84,7 @@ def refresh():
         return 1
 
     c = conn.cursor()
-    if args.now:
+    if args.now and args.db_path[0] in sources:
         remove_table(c)
     create_schema(c)
 
