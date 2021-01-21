@@ -79,8 +79,7 @@ def refresh():
 
     c = conn.cursor()
     if args.now:
-    #    remove_table(c)
-        pass
+        remove_table(c)
     create_schema(c)
 
     load_csv(c)
@@ -99,21 +98,48 @@ def main():
     refresh()
 
     if args.command == 'time':
-        requestsql = "SELECT stop_name, route_short_name, trip_headsign, delay_sec FROM infoarret"
-        requestsql+="\nWHERE stop_name like '"+args.station[0]+"%' and trip_headsign like "+args.dest[0]+"%' and route_short_name = " + args.line[0] + "\nORDER by is_theorical ASC"
+        #print(args.station[0], args.line[0], args.dest[0])
         conn = sqlite3.connect(args.db_path[0])
         if not conn:
             print("Error : could not connect to database {}".format(args.db_path[0]))
             return 1
-
+        req = "SELECT stop_name, route_short_name, trip_headsign, delay_sec " \
+            "FROM infoarret " \
+            "WHERE stop_name like 'stationname%' " \
+            "AND route_short_name = 'linenumber' " \
+            "AND trip_headsign like 'destname%' " \
+            "ORDER BY delay_sec"
+        req = req.replace('linenumber', args.line[0])
+        req = req.replace('stationname', args.station[0])
+        req = req.replace('destname', args.dest[0])
+        print(req)
         c = conn.cursor()
-        c.execute(requestsql)
+        c.execute(req)
+
         response = c.fetchall()
         for row in response:
-            print(row)
-    # elif args.command == 'register':
-    #     print('Creating username', args.username,'for new member', args.firstname, args.lastname,'with email:', args.email,'and password:', args.password)
+            #print(row)
+            print('passage vers', row[2], "à l'arret", row[0],"dans", int(row[3]/60),'minutes et', int(row[3]%60),'secondes')
+    
+    elif args.command == 'next':
+        #print(args.station[0], args.line[0], args.dest[0])
+        conn = sqlite3.connect(args.db_path[0])
+        if not conn:
+            print("Error : could not connect to database {}".format(args.db_path[0]))
+            return 1
+        req = "SELECT stop_name, route_short_name, trip_headsign, delay_sec " \
+            "FROM infoarret " \
+            "WHERE stop_name like 'stationname' " \
+            "ORDER BY delay_sec"
+        req = req.replace('stationname', args.station[0])
+        print(req)
+        c = conn.cursor()
+        c.execute(req)
 
+        response = c.fetchall()
+        for row in response:
+            #print(row)
+            print("passage sur la ligne", row[1], "vers", row[2], "à l'arret", row[0],"dans", int(row[3]/60),'minutes et', int(row[3]%60),'secondes')
 
 if __name__ == "__main__":
     sys.exit(main())
