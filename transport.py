@@ -7,6 +7,13 @@ parser = argparse.ArgumentParser("Script to interact with data from the TAM API"
 parser.add_argument("-n","--now", help="path to sqlite database", action="store_true", required=False)
 parser.add_argument("-d","--db_path",nargs=1,type=str, help="path to sqlite database", required=True)
 parser.add_argument("-c","--csv_path",nargs=1,type=str, help="path to csv file to load into the db", required=True)
+subparser = parser.add_subparsers(dest='command')
+timefunc = subparser.add_parser('time')
+nextfunc = subparser.add_parser('next')
+timefunc.add_argument('-l','--line',nargs=1, type=str)
+timefunc.add_argument('-d','--dest',nargs=1, type=str)
+timefunc.add_argument('-s','--station',nargs=1, type=str)
+nextfunc.add_argument('-s','--station',nargs=1, type=str)
 args = parser.parse_args()
 
 def download_csv():
@@ -72,7 +79,8 @@ def refresh():
 
     c = conn.cursor()
     if args.now:
-        remove_table(c)
+    #    remove_table(c)
+        pass
     create_schema(c)
 
     load_csv(c)
@@ -89,6 +97,22 @@ def main():
     if args.now:
         download_csv()
     refresh()
+
+    if args.command == 'time':
+        requestsql = "SELECT stop_name, route_short_name, trip_headsign, delay_sec FROM infoarret"
+        requestsql+="\nWHERE stop_name like '"+args.station[0]+"%' and trip_headsign like "+args.dest[0]+"%' and route_short_name = " + args.line[0] + "\nORDER by is_theorical ASC"
+        conn = sqlite3.connect(args.db_path[0])
+        if not conn:
+            print("Error : could not connect to database {}".format(args.db_path[0]))
+            return 1
+
+        c = conn.cursor()
+        c.execute(requestsql)
+        response = c.fetchall()
+        for row in response:
+            print(row)
+    # elif args.command == 'register':
+    #     print('Creating username', args.username,'for new member', args.firstname, args.lastname,'with email:', args.email,'and password:', args.password)
 
 
 if __name__ == "__main__":
