@@ -5,7 +5,9 @@ import urllib.request
 import os
 import logging
 
-logging.basicConfig(filename="loggroupe.log",level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S')
+logging.basicConfig(
+    filename="loggroupe.log", level=logging.INFO,
+    format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S')
 sources = os.listdir("./")
 logging.info("Analyse du contenu du dossier")
 
@@ -173,7 +175,7 @@ def main():
         for row in response:
             print('passage vers', row[2], "à l'arret", row[0],
                   "dans", int(row[3]/60), 'minutes et',
-                  int(row[3] % 60),'secondes')
+                  int(row[3] % 60), 'secondes')
         logging.info('commande réussie')
     elif args.command == 'next':
         logging.info(
@@ -203,8 +205,8 @@ def main():
                 result += str(int(row[3] % 60)) + 'secondes \n'
             with open('resultats.txt', 'w', encoding="utf-8") as fichierres:
                 fichierres.write(result)
-            
-        else:    
+
+        else:
             for row in response:
                 print("passage sur la ligne", row[1], "vers",
                       row[2], "à l'arret", row[0],
